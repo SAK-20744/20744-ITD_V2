@@ -157,7 +157,6 @@ public class RedLeftOuterAuto extends OpMode {
         switch (pathState) {
             case 10: // starts following the first path to score on the spike mark
                 follower.followPath(scoreSpikeMark);
-                twoPersonDrive.moveToCustomIntakeOutPosition(INTAKE_ARM_OUT_POSITION + 0.01);
                 setPathState(11);
                 break;
             case 11: // detects the path to progress away from the wall and sets tangent interpolation
@@ -169,7 +168,7 @@ public class RedLeftOuterAuto extends OpMode {
                 break;
             case 12: // detects for the end of the path and everything else to be in order and releases the pixel
                 if (!follower.isBusy() && twoPersonDrive.intakeState == INTAKE_OUT) {
-                    twoPersonDrive.setIntakeClawOpen(true);
+//                    twoPersonDrive.setIntakeClawOpen(true);
                     setPathState(13);
                 }
                 break;
@@ -203,9 +202,9 @@ public class RedLeftOuterAuto extends OpMode {
                 break;
 
             case 19:
-                if (twoPersonDrive.outtakeArmAtTargetPosition()) {
-                    setPathState(110);
-                }
+//                if (twoPersonDrive.outtakeArmAtTargetPosition()) {
+//                    setPathState(110);
+//                }
                 break;
             case 22:
                 if (!follower.isBusy()) {
