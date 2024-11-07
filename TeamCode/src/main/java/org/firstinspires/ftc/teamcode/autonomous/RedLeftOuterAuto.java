@@ -1,16 +1,16 @@
 package org.firstinspires.ftc.teamcode.autonomous;
 
 
-import static org.firstinspires.ftc.teamcode.util.Constants.INTAKE_ARM_AUTO_AVOID_POSITION;
+import static org.firstinspires.ftc.teamcode.util.Constants.CLAW_CLOSED;
+import static org.firstinspires.ftc.teamcode.util.Constants.CLAW_OPEN;
 import static org.firstinspires.ftc.teamcode.util.Constants.INTAKE_ARM_IN_POSITION;
 import static org.firstinspires.ftc.teamcode.util.Constants.INTAKE_ARM_OUT_POSITION;
-import static org.firstinspires.ftc.teamcode.util.Constants.INTAKE_CLAW_CLOSED;
-import static org.firstinspires.ftc.teamcode.util.Constants.INTAKE_CLAW_CLOSE_TIME;
+//import static org.firstinspires.ftc.teamcode.util.Constants.INTAKE_CLAW_CLOSED;
 import static org.firstinspires.ftc.teamcode.util.Constants.INTAKE_IN;
 import static org.firstinspires.ftc.teamcode.util.Constants.INTAKE_OUT;
 import static org.firstinspires.ftc.teamcode.util.Constants.LIFT_TRANSFER_UPPER_LIMIT;
-import static org.firstinspires.ftc.teamcode.util.Constants.OUTER_OUTTAKE_CLAW_CLOSED;
-import static org.firstinspires.ftc.teamcode.util.Constants.OUTER_OUTTAKE_CLAW_OPEN;
+//import static org.firstinspires.ftc.teamcode.util.Constants.OUTER_OUTTAKE_CLAW_CLOSED;
+//import static org.firstinspires.ftc.teamcode.util.Constants.OUTER_OUTTAKE_CLAW_OPEN;
 import static org.firstinspires.ftc.teamcode.util.Constants.OUTTAKE_ARM_YELLOW_SCORE_POSITION;
 import static org.firstinspires.ftc.teamcode.util.Constants.OUTTAKE_CLAW_DROP_TIME;
 import static org.firstinspires.ftc.teamcode.util.Constants.OUTTAKE_IN;
@@ -21,13 +21,10 @@ import static org.firstinspires.ftc.teamcode.util.Constants.TRANSFER_OUT;
 import static org.firstinspires.ftc.teamcode.util.Constants.TRANSFER_RESET;
 import static java.lang.Thread.sleep;
 
-import android.util.Size;
-
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.teleop.TwoPersonDrive;
 import org.firstinspires.ftc.teamcode.util.pedroPathing.follower.Follower;
@@ -48,8 +45,6 @@ public class RedLeftOuterAuto extends OpMode {
     private TwoPersonDrive twoPersonDrive;
 
     private Timer pathTimer, opmodeTimer, scanTimer, distanceSensorDecimationTimer;
-
-    private VisionPortalTeamPropPipeline teamPropPipeline;
 
     private VisionPortal visionPortal;
 
@@ -178,12 +173,12 @@ public class RedLeftOuterAuto extends OpMode {
                     setPathState(13);
                 }
                 break;
-            case 13: // moves mechanisms into position to score and pick up from stack as well as starts moving to score
-                if (pathTimer.getElapsedTime() > INTAKE_CLAW_CLOSE_TIME) {
-                    twoPersonDrive.moveToCustomIntakeOutPosition(INTAKE_ARM_AUTO_AVOID_POSITION);
-                    setPathState(14);
-                }
-                break;
+//            case 13: // moves mechanisms into position to score and pick up from stack as well as starts moving to score
+//                if (pathTimer.getElapsedTime() > INTAKE_CLAW_CLOSE_TIME) {
+//                    twoPersonDrive.moveToCustomIntakeOutPosition(INTAKE_ARM_AUTO_AVOID_POSITION);
+//                    setPathState(14);
+//                }
+//                break;
             case 14:
                 if (pathTimer.getElapsedTime() > 500) {
                     follower.followPath(adjustHeadingFromSpikeMark);
@@ -196,83 +191,24 @@ public class RedLeftOuterAuto extends OpMode {
                     setPathState(16);
                 }
                 break;
-            case 16:
-                if (follower.getCurrentPathNumber() == 1) {
-                    twoPersonDrive.setTransferState(TRANSFER_OUT);
-                    twoPersonDrive.outtakeWristOffset = -15;
-                    setPathState(17);
-                }
             case 17: // detects for end of the path and outtake out and drops pixel
                 if (!follower.isBusy() && twoPersonDrive.outtakeState == OUTTAKE_OUT) {
                     Follower.useHeading = false;
                     backdropGoalPoint = new Point(initialBackdropGoalPose);
                     follower.holdPoint(new BezierPoint(backdropGoalPoint), Math.PI * 1.5);
-                    twoPersonDrive.setOuttakeArmInterpolation(OUTTAKE_ARM_YELLOW_SCORE_POSITION);
+                    twoPersonDrive.setV4BInterpolation(OUTTAKE_ARM_YELLOW_SCORE_POSITION);
                     distanceSensorDecimationTimer.resetTimer();
                     setPathState(18);
                 }
                 break;
-            case 18:
-                if (rearDistanceSensorDisconnected) {
-                    setPathState(19);
-                    break;
-                }
-                backdropCorrection(initialBackdropGoalPose, 3.6);
-                if (pathTimer.getElapsedTime() > 500) {
-                    setPathState(19);
-                }
-                break;
+
             case 19:
                 if (twoPersonDrive.outtakeArmAtTargetPosition()) {
                     setPathState(110);
                 }
                 break;
-            case 110: // detects for end of the path and outtake out and drops pixel
-                if (pathTimer.getElapsedTime() > 700) {
-                    twoPersonDrive.outerOuttakeClaw.setPosition(OUTER_OUTTAKE_CLAW_OPEN);
-                    setPathState(111);
-                }
-                break;
-            case 111:
-                if (pathTimer.getElapsedTime() > 500) {
-                    twoPersonDrive.setTransferState(TRANSFER_RESET);
-                    setPathState(20);
-                }
-                break;
-
-            case 20:
-                if (pathTimer.getElapsedTime() > OUTTAKE_CLAW_DROP_TIME) {
-                    Follower.useHeading = true;
-                    twoPersonDrive.setTransferState(TRANSFER_RESET);
-                    twoPersonDrive.moveIntake(INTAKE_IN);
-                    setPathState(21);
-                }
-                break;
-            case 21:
-                if (twoPersonDrive.intakeState == INTAKE_IN && twoPersonDrive.intakeArmAtTargetPosition() && twoPersonDrive.outtakeState == OUTTAKE_IN && twoPersonDrive.outtakeArmAtTargetPosition() && twoPersonDrive.liftEncoder.getCurrentPosition() < LIFT_TRANSFER_UPPER_LIMIT) {
-                    follower.resetOffset();
-                    PathChain abort = follower.pathBuilder()
-                            .addPath(new BezierLine(new Point(follower.getPose()), abortPoint))
-                            .setConstantHeadingInterpolation(Math.PI * 1.5)
-                            .build();
-                    follower.followPath(abort);
-                    setPathState(22);
-                }
-                break;
             case 22:
                 if (!follower.isBusy()) {
-                    setPathState(-1);
-                }
-                break;
-
-
-            case 40: // move the intake in
-                twoPersonDrive.setTransferState(TRANSFER_RESET);
-                twoPersonDrive.moveIntake(INTAKE_IN);
-                setPathState(41);
-                break;
-            case 41: // once the robot is nice and folded up, request stop
-                if (twoPersonDrive.intakeState == INTAKE_IN && twoPersonDrive.intakeArmAtTargetPosition() && twoPersonDrive.outtakeState == OUTTAKE_IN && twoPersonDrive.outtakeArmAtTargetPosition()) {
                     setPathState(-1);
                 }
                 break;
@@ -287,43 +223,6 @@ public class RedLeftOuterAuto extends OpMode {
         pathState = state;
         pathTimer.resetTimer();
         autonomousPathUpdate();
-    }
-
-    public void backdropCorrection(Pose scorePose, double distanceGoal) {
-        if (distanceSensorDecimationTimer.getElapsedTime() > 20) {
-
-            double distance = rearDistanceSensor.getDistance(DistanceUnit.MM);
-
-            if (distance != 65535) {
-                //follower.holdPoint(new BezierPoint(new Point(scorePose.getX(), MathFunctions.clamp(follower.getPose().getY() + (distance / 25.4) - distanceGoal, scorePose.getY() - 4, scorePose.getY() + 4), Point.CARTESIAN)), Math.PI * 1.5);
-                backdropGoalPoint.setCoordinates(scorePose.getX(), MathFunctions.clamp(follower.getPose().getY() + ((distance / 25.4) - distanceGoal), scorePose.getY() - 4, scorePose.getY() + 4), Point.CARTESIAN);
-            } else {
-                rearDistanceSensorDisconnected = true;
-            }
-/*
-            // too close
-            if (distance < 0.5)
-                follower.poseUpdater.setYOffset(follower.poseUpdater.getYOffset() + distanceSensorDecimationTimer.getElapsedTimeSeconds() * 1.5);
-
-            // too far
-            if (distance > 0.75)
-                follower.poseUpdater.setYOffset(follower.poseUpdater.getYOffset() - distanceSensorDecimationTimer.getElapsedTimeSeconds() * 1.5);
-
-            // to do add some sort of deadzone or dampening
-            // perhaps take note of the estimated pose at the start and see how far off we need to go instead of incrementing off of the current one
-            // or just remove the getyoffset thing? think about later
-            follower.poseUpdater.setYOffset(follower.poseUpdater.getYOffset() - (distance - 2));
-
-            if (Math.abs(follower.poseUpdater.getYOffset()) > 1.5)
-                follower.poseUpdater.setYOffset(1.5 * MathFunctions.getSign(follower.poseUpdater.getYOffset()));
-*/
-            //telemetry.addData("rear distance value", distance);
-            distanceSensorDecimationTimer.resetTimer();
-        }
-    }
-
-    public boolean rearDistanceSensorDisconnected() {
-        return rearDistanceSensor.getDistance(DistanceUnit.MM) == 65535;
     }
 
     @Override
@@ -344,8 +243,6 @@ public class RedLeftOuterAuto extends OpMode {
     public void init() {
         //PhotonCore.start(this.hardwareMap);
 
-        rearDistanceSensor = hardwareMap.get(DistanceSensor.class, "rearDistanceSensor");
-
         twoPersonDrive = new TwoPersonDrive(true);
         twoPersonDrive.hardwareMap = hardwareMap;
         twoPersonDrive.telemetry = telemetry;
@@ -358,19 +255,7 @@ public class RedLeftOuterAuto extends OpMode {
         follower = new Follower(hardwareMap);
         follower.setStartingPose(startPose);
 
-        teamPropPipeline = new VisionPortalTeamPropPipeline(0);
-
-        visionPortal = new VisionPortal.Builder()
-                .setCamera(hardwareMap.get(WebcamName.class, "camera"))
-                .addProcessors(teamPropPipeline)
-                .setCameraResolution(new Size(640, 480))
-                .setStreamFormat(VisionPortal.StreamFormat.YUY2)
-                .enableLiveView(true)
-                .setAutoStopLiveView(true)
-                .build();
-
         twoPersonDrive.initialize();
-        twoPersonDrive.setIntakeArmPosition(INTAKE_ARM_IN_POSITION + 0.1);
 
         try {
             Thread.sleep(2000);
@@ -378,24 +263,13 @@ public class RedLeftOuterAuto extends OpMode {
             throw new RuntimeException(e);
         }
 
-        if (rearDistanceSensorDisconnected()) {
-            try {
-                throw new Exception("color sensor disconnected");
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        twoPersonDrive.outerOuttakeClaw.setPosition(OUTER_OUTTAKE_CLAW_CLOSED);
+        twoPersonDrive.claw.setPosition(CLAW_CLOSED);
 
         try {
             Thread.sleep(3000);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-
-        twoPersonDrive.intakeClaw.setPosition(INTAKE_CLAW_CLOSED);
-        twoPersonDrive.intakeClawIsOpen = false;
 
         try {
             sleep(2500);
@@ -407,23 +281,8 @@ public class RedLeftOuterAuto extends OpMode {
     }
 
     @Override
-    public void init_loop() {
-        if (scanTimer.getElapsedTime() > 750) {
-            navigation = teamPropPipeline.getNavigation();
-            telemetry.addData("Navigation:", navigation);
-            telemetry.update();
-            scanTimer.resetTimer();
-        } else if (scanTimer.getElapsedTime() > 700) {
-            visionPortal.setProcessorEnabled(teamPropPipeline, true);
-        } else {
-            visionPortal.setProcessorEnabled(teamPropPipeline, false);
-        }
-    }
-
-    @Override
     public void start() {
-        visionPortal.stopStreaming();
-        setBackdropGoalPose();
+        setBackdropGoalPose(); //TODO: please change
         buildPaths();
         twoPersonDrive.frameTimer.resetTimer();
         opmodeTimer.resetTimer();

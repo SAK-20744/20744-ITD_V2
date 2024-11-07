@@ -154,33 +154,11 @@ public class Constants {
     // conversion factor of degrees to servo position units for the outtake wrist
     OUTTAKE_WRIST_DEGREES_TO_SERVO = 1.0/355,
 
-
-    // open position of the outer scoring claw
-    OUTER_OUTTAKE_CLAW_OPEN = 0.45,
-
-    // closed position of the outer scoring claw
-    OUTER_OUTTAKE_CLAW_CLOSED = 0.27,
-
     // open position of the inner scoring claw
-    INNER_OUTTAKE_CLAW_OPEN = 0.67,
+    CLAW_OPEN = 0.67,
 
     // closed position of the inner scoring claw
-    INNER_OUTTAKE_CLAW_CLOSED = 0.88,
-
-    // open position of the intake claw when the arm is out
-    INTAKE_CLAW_OUT_OPEN = 0.45,
-
-    // open position of the intake claw when the arm is not out
-    INTAKE_CLAW_IN_OPEN = 0.5,
-
-    // closed position of the intake claw
-    INTAKE_CLAW_CLOSED = 0.68,
-
-    // plane launcher launch position
-    PLANE_LAUNCHER_LAUNCH = 0.3,
-
-    // plane launcher hold position
-    PLANE_LAUNCHER_HOLD = 0.07,
+    CLAW_CLOSED = 0.88,
 
     // the length from the middle of the robot to the back
     ROBOT_BACK_LENGTH = 11.5,
